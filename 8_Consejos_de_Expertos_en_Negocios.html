@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Consejos de Expertos - Modal con texto extra</title>
+<style>
+  :root{--primary:#0b5ed7;--muted:#666;--card-bg:#fff;--bg:#f4f6f8;--accent:#006400}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);margin:18px;color:#222}
+  h1{text-align:center;color:var(--primary);margin-bottom:12px;font-size:1.3rem}
+  .contenedor{display:grid;gap:10px;max-width:920px;margin:0 auto;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .consejo{background:var(--card-bg);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08);cursor:pointer;transition:transform .12s,box-shadow .12s;outline:none}
+  .consejo:focus{box-shadow:0 8px 20px rgba(11,94,215,0.14);transform:translateY(-3px)}
+  .titulo{font-weight:700;color:var(--primary);margin-bottom:6px;font-size:1rem}
+  .autor{font-size:0.86rem;color:var(--muted);font-style:italic}
+  /* modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:1200;padding:20px}
+  .modal[aria-hidden="false"]{display:flex}
+  .modal-contenido{background:var(--card-bg);padding:18px;border-radius:10px;max-width:760px;width:100%;max-height:90vh;overflow:auto;position:relative;box-shadow:0 10px 40px rgba(0,0,0,0.25)}
+  .cerrar{position:absolute;top:10px;right:12px;font-size:20px;cursor:pointer;color:var(--primary);background:none;border:none}
+  .modal-contenido h2{margin:0 0 8px;color:var(--primary);font-size:1.15rem}
+  .modal-autor{font-style:italic;color:var(--muted);margin-bottom:12px}
+  .modal-texto{line-height:1.5;color:#222;text-align:justify;margin-bottom:12px}
+  .modal-subtitulo{color:var(--accent);font-weight:600;margin-top:6px;margin-bottom:6px}
+  .modal-texto-extra{color:#333;line-height:1.5;margin-top:6px;font-style:italic}
+  footer{text-align:center;margin-top:20px;font-size:0.9rem;color:#555}
+  @media(max-width:480px){
+    .consejo{padding:12px}
+    .modal-contenido{padding:14px}
+    .modal-contenido h2{font-size:1rem}
+  }
+</style>
+</head>
+<body>
+
+<h1>💼 Consejos de Expertos en Negocios</h1>
+<h1>¡Haz click para ver más!</h1>
+
+<div class="contenedor" id="contenedorConsejos" aria-live="polite"></div>
+
+<!-- Modal -->
+<div class="modal" id="modal" role="dialog" aria-hidden="true" aria-labelledby="modalTitulo" aria-modal="true">
+  <div class="modal-contenido" role="document">
+    <button class="cerrar" aria-label="Cerrar" id="btnCerrar">✖</button>
+    <h2 id="modalTitulo"></h2>
+    <div class="modal-autor" id="modalAutor"></div>
+    <div class="modal-texto" id="modalTexto"></div>
+    <div class="modal-subtitulo" id="modalSubtitulo"></div>
+    <div class="modal-texto-extra" id="modalTextoExtra"></div>
+  </div>
+</div>
+
+<footer>Creado por Código 404 Ciberseguridad © 2025</footer>
+
+<script>
+/* --- Datos: añade / edita consejos aquí --- */
+const consejos = [
+  {
+    titulo: "Diversifica tus fuentes de ingreso",
+    autor: "Clayton M. Christensen",
+    texto: "No dependas de un solo producto o cliente. Las empresas más estables distribuyen sus ingresos entre distintas líneas de negocio, regiones o tipos de cliente.",
+    subtitulo: "Variedad = resiliencia.",
+    textoExtra: "Revisa periódicamente tus resultados y ajusta la estrategia según las oportunidades que surjan."
+  },
+  {
+    titulo: "Invierte en transformación digital",
+    autor: "Peter F. Drucker",
+    texto: "La digitalización optimiza procesos, reduce costos y mejora la experiencia del cliente.",
+    subtitulo: "Automatiza lo rutinario; piensa en datos.",
+    textoExtra: "Incluye seguimiento de KPIs y adopta herramientas digitales que generen valor real."
+  },
+  {
+    titulo: "Ubicación estratégica en la mente del consumidor",
+    autor: "Jack Trout",
+    texto: "Posiciona tu marca en la mente del consumidor mediante comunicación clara y diferenciación.",
+    subtitulo: "Diferénciate para destacar.",
+    textoExtra: "Analiza competidores y ajusta mensajes según el público objetivo."
+  },
+  {
+    titulo: "Aprendizaje organizacional y pensamiento sistémico",
+    autor: "Peter Senge",
+    texto: "Las empresas deben aprender continuamente, optimizando procesos y fomentando la colaboración entre áreas.",
+    subtitulo: "Aprender juntos es crecer juntos.",
+    textoExtra: "Crea equipos multidisciplinarios y sesiones de reflexión periódicas."
+  },
+  {
+    titulo: "Estrategia deliberada y emergente",
+    autor: "Henry Mintzberg",
+    texto: "Combina planificación estratégica con la flexibilidad para adaptarte a cambios inesperados.",
+    subtitulo: "Planifica pero mantente flexible.",
+    textoExtra: "Revisa y ajusta planes estratégicos trimestralmente."
+  },
+  {
+    titulo: "Análisis riguroso y decisiones basadas en datos",
+    autor: "Richard Rumelt",
+    texto: "Usa información objetiva y análisis profundo para tomar decisiones estratégicas acertadas.",
+    subtitulo: "Datos sólidos = decisiones correctas.",
+    textoExtra: "Integra dashboards y métricas clave para la toma de decisiones diaria."
+  },
+  {
+    titulo: "Las cinco fuerzas de Porter",
+    autor: "Michael Porter",
+    texto: "Analiza la competencia, proveedores, clientes, productos sustitutos y la entrada de nuevos competidores para determinar la rentabilidad de un sector.",
+    subtitulo: "Evaluación estratégica integral.",
+    textoExtra: "Aplica estas fuerzas antes de lanzar un nuevo producto o entrar a un mercado nuevo."
+  },
+  {
+    titulo: "Innovación y disrupción",
+    autor: "Clayton M. Christensen",
+    texto: "Fomenta la innovación para generar crecimiento y ventaja competitiva.",
+    subtitulo: "Innovar o quedarse atrás.",
+    textoExtra: "Evalúa nuevas tecnologías y tendencias para adelantarte a la competencia."
+  }
+];
+
+/* --- Render tarjetas (solo título y autor) --- */
+const contenedor = document.getElementById('contenedorConsejos');
+
+function renderTarjetas(){
+  contenedor.innerHTML = '';
+  consejos.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'consejo';
+    card.tabIndex = 0;
+    card.setAttribute('role','button');
+    card.setAttribute('aria-label', `${c.titulo} - autor: ${c.autor}`);
+    card.addEventListener('click', ()=> abrirModal(i));
+    card.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') abrirModal(i); });
+
+    card.innerHTML = `
+      <div class="titulo">${escapeHtml(c.titulo)}</div>
+      <div class="autor">Autor: ${escapeHtml(c.autor)}</div>
+    `;
+    contenedor.appendChild(card);
+  });
+}
+
+/* --- Modal logic --- */
+const modal = document.getElementById('modal');
+const btnCerrar = document.getElementById('btnCerrar');
+
+function abrirModal(index){
+  const c = consejos[index] || {};
+  document.getElementById('modalTitulo').textContent = c.titulo || '';
+  document.getElementById('modalAutor').textContent = c.autor ? 'Autor: ' + c.autor : '';
+  document.getElementById('modalTexto').textContent = c.texto || '';
+  document.getElementById('modalSubtitulo').textContent = c.subtitulo || '';
+  document.getElementById('modalTextoExtra').textContent = c.textoExtra || '';
+  modal.setAttribute('aria-hidden','false');
+  btnCerrar.focus();
+}
+
+function cerrarModal(){
+  modal.setAttribute('aria-hidden','true');
+}
+
+modal.addEventListener('click', function(e){
+  if(e.target === modal) cerrarModal();
+});
+
+btnCerrar.addEventListener('click', cerrarModal);
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') cerrarModal();
+});
+
+/* escape HTML */
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/[&<>"'`=\/]/g, function(ch){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60','=':'&#x3D'})[ch];
+  });
+}
+
+renderTarjetas();
+</script>
+</body>
+</html>

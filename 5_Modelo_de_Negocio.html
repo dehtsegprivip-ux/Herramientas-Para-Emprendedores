@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelo de Negocio</title>
+
+<!-- Librerías necesarias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:20px; }
+h1 { text-align:center; color:#333; }
+.form { background:#fff; padding:15px; border-radius:10px; max-width:900px; margin:0 auto 20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+label { display:block; margin:10px 0 5px; font-weight:600; }
+input { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+.canvas { display:grid; grid-template-columns:repeat(3, 1fr); grid-gap:10px; margin-top:20px; }
+.block { background:#fff; padding:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+.block h3 { margin-top:0; font-size:1rem; text-align:center; color:#007bff; }
+textarea { width:100%; height:80px; border-radius:5px; border:1px solid #ccc; padding:5px; resize:none; }
+.btn { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; background:#007bff; color:#fff; margin-top:10px; }
+.btn:hover { background:#0056b3; }
+.download-pdf {
+  display:block;
+  margin:25px auto;
+  background:#198754;
+  color:white;
+  border:none;
+  padding:12px 20px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.download-pdf:hover { background:#157347; }
+footer { text-align:center; margin-top:30px; font-size:0.9rem; color:#555; }
+@media(max-width:800px){
+  .canvas{grid-template-columns:1fr;}
+  .form{padding:10px;}
+}
+</style>
+</head>
+<body>
+
+<h1>Modelo de Negocio</h1>
+
+<!-- CONTENIDO PARA PDF -->
+<div id="contenido">
+
+<div class="form">
+<label for="project">Título del proyecto:</label>
+<input type="text" id="project" placeholder="Ejemplo: Startup Tech 2025">
+
+<label for="creator">Creado por:</label>
+<input type="text" id="creator" placeholder="Nombre o equipo responsable">
+
+<label for="date">Fecha:</label>
+<input type="date" id="date">
+</div>
+
+<div class="canvas">
+  <div class="block">
+    <h3>Segmentos de Clientes</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Propuesta de Valor</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Canales</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Relaciones con Clientes</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Recursos Clave</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Actividades Clave</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Socios Clave</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Estructura de Costos</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+  <div class="block">
+    <h3>Fuentes de Ingresos</h3>
+    <textarea placeholder="Describe aquí..."></textarea>
+  </div>
+</div>
+
+</div> <!-- fin contenido -->
+
+<!-- BOTÓN PARA PDF -->
+<button class="download-pdf" onclick="generarPDF()">📄 Descargar PDF</button>
+
+<footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<script>
+async function generarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+  const contenido = document.getElementById("contenido");
+
+  await html2canvas(contenido, { scale:2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 560;
+    const pageHeight = 842;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let position = 20;
+
+    pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+    pdf.save("modelo-de-negocio.pdf");
+  });
+}
+</script>
+
+</body>
+</html>

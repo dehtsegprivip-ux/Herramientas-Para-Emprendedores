@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matriz FODA</title>
+
+<!-- Librerías PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 20px;
+}
+h1 {
+  text-align: center;
+  color: #333;
+}
+.form, #vistaPrevia {
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 500px;
+  margin: 0 auto 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 600;
+}
+input, textarea {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 12px;
+}
+textarea {
+  height: 70px;
+  resize: none;
+}
+.btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #007bff;
+  color: #fff;
+  margin-top: 10px;
+}
+.btn:hover { background: #0056b3; }
+.download-pdf {
+  display:block;
+  margin:25px auto;
+  background:#198754;
+  color:white;
+  border:none;
+  padding:12px 20px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.download-pdf:hover { background:#157347; }
+.section {
+  margin-bottom: 20px;
+}
+.section h3 {
+  background: #007bff;
+  color: white;
+  padding: 6px;
+  font-size: 14px;
+  border-radius: 5px 5px 0 0;
+  text-align: center;
+  margin: 0;
+}
+.section textarea {
+  border-radius: 0 0 5px 5px;
+}
+footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 0.9rem;
+  color: #555;
+}
+#vistaPrevia {
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<h1>Matriz FODA</h1>
+
+<!-- Sección editable -->
+<div id="editor">
+  <div class="form">
+    <label for="project">Título del proyecto:</label>
+    <input type="text" id="project">
+
+    <label for="creator">Creado por:</label>
+    <input type="text" id="creator">
+
+    <label for="date">Fecha:</label>
+    <input type="date" id="date">
+  </div>
+
+  <div class="section">
+    <h3>Debilidades</h3>
+    <textarea id="deb"></textarea>
+  </div>
+
+  <div class="section">
+    <h3>Amenazas</h3>
+    <textarea id="ame"></textarea>
+  </div>
+
+  <div class="section">
+    <h3>Fortalezas</h3>
+    <textarea id="for"></textarea>
+  </div>
+
+  <div class="section">
+    <h3>Oportunidades</h3>
+    <textarea id="opo"></textarea>
+  </div>
+
+  <div style="text-align:center;">
+    <button class="btn" onclick="generarVista()">📄 Generar Vista Previa</button>
+  </div>
+</div>
+
+<!-- Vista previa para PDF -->
+<div id="vistaPrevia">
+  <div id="contenido">
+    <p><strong>Proyecto:</strong> <span id="p_titulo"></span></p>
+    <p><strong>Creado por:</strong> <span id="p_creador"></span></p>
+    <p><strong>Fecha:</strong> <span id="p_fecha"></span></p>
+
+    <div class="section">
+      <h3>Debilidades</h3>
+      <p id="p_deb"></p>
+    </div>
+
+    <div class="section">
+      <h3>Amenazas</h3>
+      <p id="p_ame"></p>
+    </div>
+
+    <div class="section">
+      <h3>Fortalezas</h3>
+      <p id="p_for"></p>
+    </div>
+
+    <div class="section">
+      <h3>Oportunidades</h3>
+      <p id="p_opo"></p>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <button class="btn" onclick="volverEditar()">✏️ Volver a editar</button>
+    <button class="download-pdf" onclick="generarPDF()">📄 Descargar PDF</button>
+  </div>
+</div>
+
+<footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<script>
+function generarVista() {
+  document.getElementById("p_titulo").textContent = document.getElementById("project").value;
+  document.getElementById("p_creador").textContent = document.getElementById("creator").value;
+  document.getElementById("p_fecha").textContent = document.getElementById("date").value;
+  document.getElementById("p_deb").textContent = document.getElementById("deb").value;
+  document.getElementById("p_ame").textContent = document.getElementById("ame").value;
+  document.getElementById("p_for").textContent = document.getElementById("for").value;
+  document.getElementById("p_opo").textContent = document.getElementById("opo").value;
+
+  document.getElementById("editor").style.display = "none";
+  document.getElementById("vistaPrevia").style.display = "block";
+}
+
+function volverEditar() {
+  document.getElementById("vistaPrevia").style.display = "none";
+  document.getElementById("editor").style.display = "block";
+}
+
+// --- Generación del PDF ---
+async function generarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+  const contenido = document.getElementById("contenido");
+
+  await html2canvas(contenido, { scale:2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 560;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+    pdf.save("matriz-foda.pdf");
+  });
+}
+</script>
+
+</body>
+</html>

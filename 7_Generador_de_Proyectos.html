@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Proyectos</title>
+
+<!-- Librerías necesarias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:20px; }
+h1, h2 { text-align:center; color:#333; }
+.form { background:#fff; padding:15px; border-radius:10px; max-width:800px; margin:0 auto 20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+label { display:block; margin:10px 0 5px; font-weight:600; }
+input, textarea { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+textarea { height:80px; resize:none; }
+.section { background:#fff; padding:15px; border-radius:10px; margin-top:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); max-width:800px; margin-left:auto; margin-right:auto; }
+.btn { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; background:#007bff; color:#fff; margin-top:10px; }
+.btn:hover { background:#0056b3; }
+.download-pdf {
+  display:block;
+  margin:25px auto;
+  background:#198754;
+  color:white;
+  border:none;
+  padding:12px 20px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.download-pdf:hover { background:#157347; }
+footer { text-align:center; margin-top:30px; font-size:0.9rem; color:#555; }
+@media(max-width:700px){ .form, .section{padding:10px;} textarea{height:60px;} }
+</style>
+</head>
+<body>
+
+<h1>Generador de Proyectos</h1>
+
+<!-- Contenido que se exportará a PDF -->
+<div id="contenido">
+
+<div class="form">
+<label for="projectName">Nombre del proyecto:</label>
+<input type="text" id="projectName" placeholder="Ejemplo: Plan de Seguridad Digital">
+
+<label for="creator">Creador:</label>
+<input type="text" id="creator" placeholder="Tu nombre o equipo">
+
+<label for="date">Fecha:</label>
+<input type="date" id="date">
+</div>
+
+<h2>Detalles del Proyecto</h2>
+
+<div class="section">
+<label>Objetivos:</label>
+<textarea placeholder="Define los objetivos del proyecto..."></textarea>
+
+<label>Alcance:</label>
+<textarea placeholder="Describe el alcance del proyecto..."></textarea>
+
+<label>Actividades:</label>
+<textarea placeholder="Lista las actividades principales..."></textarea>
+
+<label>Recursos:</label>
+<textarea placeholder="Especifica los recursos necesarios..."></textarea>
+
+<label>Plazos:</label>
+<textarea placeholder="Indica los plazos y fechas clave..."></textarea>
+
+<label>Responsables:</label>
+<textarea placeholder="Indica los responsables de cada actividad..."></textarea>
+
+<label>Riesgos:</label>
+<textarea placeholder="Identifica posibles riesgos y cómo mitigarlos..."></textarea>
+
+<label>Indicadores de éxito:</label>
+<textarea placeholder="Define cómo medirás el éxito del proyecto..."></textarea>
+</div>
+
+</div> <!-- fin de contenido -->
+
+<!-- BOTÓN PARA PDF -->
+<button class="download-pdf" onclick="generarPDF()">📄 Descargar PDF</button>
+
+<footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<script>
+async function generarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+  const contenido = document.getElementById("contenido");
+
+  await html2canvas(contenido, { scale:2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 560;
+    const pageHeight = 842;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let position = 20;
+
+    pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+    pdf.save("generador-de-proyectos.pdf");
+  });
+}
+</script>
+
+</body>
+</html>

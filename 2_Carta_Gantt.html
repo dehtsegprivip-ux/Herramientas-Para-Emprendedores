@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta Gantt (10 tareas máx.)</title>
+
+<style>
+body { font-family: Arial, sans-serif; margin: 8px; background:#f4f6f8; }
+h1 { text-align:center; color:#333; }
+.form { background:#fff; padding:10px; border-radius:10px; max-width:600px; margin:0 auto 20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+label { display:block; margin:10px 0 5px; font-weight:400; }
+input, select { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+.btn { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; background:#007bff; color:#fff; margin-right:5px; }
+.btn:hover { background:#0056b3; }
+.cancel-btn { background:#6c757d; }
+table { width:100%; border-collapse: collapse; margin-top:20px; background:white; }
+th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+th { background:#007bff; color:white; }
+.bar { height:20px; border-radius:5px; }
+.action-btn { padding:5px 8px; margin:0 3px; border:none; border-radius:5px; cursor:pointer; color:white; }
+.edit-btn { background:#ffc107; color:#000; }
+.delete-btn { background:#dc3545; }
+.dup-btn { background:#6f42c1; }
+.gantt-chart { margin:20px auto; max-width:600px; width:100%; background:white; padding:10px; border-radius:8px; }
+footer { text-align:center; margin-top:30px; font-size:0.9rem; color:#555; }
+.download-pdf {
+  display:block;
+  margin:20px auto;
+  background:#198754;
+  color:white;
+  border:none;
+  padding:12px 20px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.download-pdf:hover { background:#157347; }
+
+@media (max-width:700px){
+  .form, table { font-size:0.8rem; }
+  .btn, .action-btn { font-size:0.75rem; padding:5px 8px; }
+}
+</style>
+</head>
+<body>
+
+<h1>📊 Carta Gantt (10 tareas máx.)</h1>
+
+<!-- CONTENIDO PARA PDF -->
+<div id="contenido">
+
+<div class="form">
+<label for="task">Nombre de la tarea</label>
+<input type="text" id="task">
+
+<label for="start">Fecha de inicio</label>
+<input type="date" id="start">
+
+<label for="end">Fecha de fin</label>
+<input type="date" id="end">
+
+<label for="color">Estado / Color</label>
+<select id="color">
+<option value="rojo">🔴 Urgente</option>
+<option value="azul">🔵 Pendiente</option>
+<option value="verde">🟢 Hecho</option>
+<option value="negro">⚫ No hecho</option>
+</select>
+
+<div>
+<button id="mainButton" class="btn">Agregar tarea</button>
+<button id="cancelEdit" class="btn cancel-btn" style="display:none;">Cancelar edición</button>
+</div>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Tarea</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Estado</th><th>Gráfico</th><th>Acciones</th>
+</tr>
+</thead>
+<tbody id="ganttBody">
+<tr><td colspan="7">No hay tareas aún.</td></tr>
+</tbody>
+</table>
+
+<div class="gantt-chart">
+<h2 style="text-align:center;">📈 Proyección de Tareas</h2>
+<canvas id="ganttChart" width="400" height="200"></canvas>
+</div>
+
+</div> <!-- fin contenido -->
+
+<!-- BOTÓN PARA PDF -->
+<button class="download-pdf" onclick="generarPDF()">📄 Descargar PDF</button>
+
+<footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<!-- LIBRERÍAS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const taskInput = document.getElementById("task");
+const startInput = document.getElementById("start");
+const endInput = document.getElementById("end");
+const colorInput = document.getElementById("color");
+const mainButton = document.getElementById("mainButton");
+const cancelButton = document.getElementById("cancelEdit");
+const bodyTable = document.getElementById("ganttBody");
+const chartCanvas = document.getElementById("ganttChart");
+
+let tasks = [];
+let editIndex = null;
+let ganttChart = null;
+
+function getColorCode(c){ return {rojo:"#dc3545", azul:"#007bff", verde:"#28a745", negro:"#000"}[c] || "#007bff"; }
+function getColorLabel(c){ return {rojo:"Urgente", azul:"Pendiente", verde:"Hecho", negro:"No Hecho"}[c] || "Pendiente"; }
+
+function renderTasks(){
+  if(tasks.length===0){ 
+    bodyTable.innerHTML="<tr><td colspan='7'>No hay tareas aún.</td></tr>"; 
+    renderChart(); 
+    return; 
+  }
+  bodyTable.innerHTML="";
+  const minDate = new Date(Math.min(...tasks.map(t=>t.start)));
+  const maxDate = new Date(Math.max(...tasks.map(t=>t.end)));
+  const totalDays = Math.round((maxDate-minDate)/(1000*60*60*24))+1;
+
+  tasks.forEach((t,i)=>{
+    const offset = (t.start-minDate)/(1000*60*60*24);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.name}</td>
+      <td>${t.start.toLocaleDateString()}</td>
+      <td>${t.end.toLocaleDateString()}</td>
+      <td>${t.duration} días</td>
+      <td>${getColorLabel(t.color)}</td>
+      <td><div class="bar" style="background:${getColorCode(t.color)};width:${(t.duration/totalDays)*100}%; margin-left:${(offset/totalDays)*100}%"></div></td>
+      <td>
+        <button class="action-btn edit-btn" onclick="editTask(${i})">Editar</button>
+        <button class="action-btn dup-btn" onclick="duplicateTask(${i})">Duplicar</button>
+        <button class="action-btn delete-btn" onclick="deleteTask(${i})">Eliminar</button>
+      </td>`;
+    bodyTable.appendChild(tr);
+  });
+  renderChart();
+}
+
+function renderChart(){
+  const labels = tasks.map(t=>t.name);
+  const durations = tasks.map(t=>t.duration);
+  const colors = tasks.map(t=>getColorCode(t.color));
+  if(ganttChart) ganttChart.destroy();
+  if(tasks.length===0) return;
+
+  chartCanvas.width = 400;
+  chartCanvas.height = 200;
+
+  ganttChart = new Chart(chartCanvas,{
+    type:'bar',
+    data:{ labels:labels, datasets:[{label:'Duración (días)', data:durations, backgroundColor:colors}] },
+    options:{
+      indexAxis:'y',
+      responsive:false,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ title:{display:true,text:'Días'}, beginAtZero:true },
+        y:{ title:{display:true,text:'Tareas'} }
+      }
+    }
+  });
+}
+
+function addOrUpdateTask(){
+  if(tasks.length >= 10 && editIndex === null){
+    alert("Has alcanzado el límite de 10 tareas para un gráfico óptimo.");
+    return;
+  }
+  const name = taskInput.value.trim();
+  const start = startInput.value;
+  const end = endInput.value;
+  const color = colorInput.value;
+  if(!name || !start || !end){ alert("Completa todos los campos"); return; }
+  const s = new Date(start), e = new Date(end);
+  const duration = Math.round((e-s)/(1000*60*60*24))+1;
+  if(duration<=0){ alert("La fecha de fin debe ser posterior a inicio"); return; }
+  const task = {name,start:s,end:e,duration,color};
+
+  if(editIndex !== null){ tasks[editIndex] = task; editIndex=null; mainButton.textContent="Agregar tarea"; cancelButton.style.display="none"; }
+  else tasks.push(task);
+
+  clearForm();
+  renderTasks();
+}
+
+function editTask(i){
+  const t = tasks[i];
+  taskInput.value = t.name;
+  startInput.valueAsDate = t.start;
+  endInput.valueAsDate = t.end;
+  colorInput.value = t.color;
+  editIndex = i;
+  mainButton.textContent = "Guardar cambios";
+  cancelButton.style.display = "inline-block";
+}
+
+function cancelEdit(){
+  editIndex = null;
+  clearForm();
+  mainButton.textContent = "Agregar tarea";
+  cancelButton.style.display = "none";
+}
+
+function deleteTask(i){ if(confirm("Eliminar esta tarea?")){ tasks.splice(i,1); renderTasks(); } }
+function duplicateTask(i){ const t = {...tasks[i]}; t.name+=" (copia)"; tasks.splice(i+1,0,t); renderTasks(); }
+function clearForm(){ taskInput.value=""; startInput.value=""; endInput.value=""; colorInput.value="azul"; }
+
+mainButton.addEventListener("click", addOrUpdateTask);
+cancelButton.addEventListener("click", cancelEdit);
+renderTasks();
+
+// --- FUNCIONALIDAD PDF (corregida) ---
+async function generarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+  const contenido = document.getElementById("contenido");
+
+  await html2canvas(contenido, { scale:2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 560;
+    const pageHeight = 842;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let position = 20;
+
+    pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+    pdf.save("carta-gantt.pdf");
+  });
+}
+</script>
+
+</body>
+</html>

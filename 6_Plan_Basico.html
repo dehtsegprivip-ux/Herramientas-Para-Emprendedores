@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Básico</title>
+
+<!-- Librerías necesarias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:20px; }
+h1, h2 { text-align:center; color:#333; }
+.form { background:#fff; padding:15px; border-radius:10px; max-width:700px; margin:0 auto 20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+label { display:block; margin:10px 0 5px; font-weight:600; }
+input { width:100%; padding:8px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; }
+.plan { background:#fff; padding:15px; border-radius:10px; margin-top:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); max-width:700px; margin-left:auto; margin-right:auto; }
+.plan textarea { width:100%; height:80px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; padding:5px; resize:none; }
+footer { text-align:center; margin-top:60px; font-size:0.9rem; color:#555; }
+.download-pdf {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#198754;
+  color:white;
+  border:none;
+  padding:14px 22px;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 3px 6px rgba(0,0,0,0.2);
+  z-index:9999;
+  font-size:16px;
+}
+.download-pdf:hover { background:#157347; }
+@media(max-width:700px){
+  .form, .plan{padding:10px;}
+  textarea{height:60px;}
+  .download-pdf{ right:10px; bottom:10px; font-size:14px; padding:10px 16px;}
+}
+</style>
+</head>
+<body>
+
+<h1>Plan Básico</h1>
+
+<!-- CONTENIDO PARA PDF -->
+<div id="contenido">
+
+<div class="form">
+<label for="project">Título del proyecto:</label>
+<input type="text" id="project">
+
+<label for="creator">Creado por:</label>
+<input type="text" id="creator">
+
+<label for="date">Fecha:</label>
+<input type="date" id="date">
+</div>
+
+<h2>Detalles del Plan</h2>
+<div class="plan">
+<label>Objetivos del proyecto:</label>
+<textarea placeholder="Describe los objetivos..."></textarea>
+
+<label>Actividades principales:</label>
+<textarea placeholder="Lista las actividades..."></textarea>
+
+<label>Recursos necesarios:</label>
+<textarea placeholder="Especifica recursos..."></textarea>
+
+<label>Plazos:</label>
+<textarea placeholder="Indica plazos..."></textarea>
+
+<label>Responsables:</label>
+<textarea placeholder="Indica responsables..."></textarea>
+</div>
+
+</div> <!-- fin contenido -->
+
+<!-- BOTÓN FIJO PARA DESCARGAR PDF -->
+<button class="download-pdf" onclick="generarPDF()">📄 Descargar PDF</button>
+
+<footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<script>
+async function generarPDF(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:'p', unit:'pt', format:'a4' });
+  const contenido = document.getElementById("contenido");
+
+  await html2canvas(contenido, { scale:2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 560;
+    const pageHeight = 842;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    let position = 20;
+
+    pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+    pdf.save("plan-basico.pdf");
+  });
+}
+</script>
+
+</body>
+</html>
