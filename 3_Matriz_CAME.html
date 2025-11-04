@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Matriz CAME</title>
 
+<!-- Librerías necesarias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
 body { 
   font-family: Arial, sans-serif; 
@@ -38,15 +42,13 @@ input {
   border:1px solid #ccc; 
   font-size:0.9rem;
 }
-
 .table-container { 
   max-width:100%; 
   overflow-x:auto; 
   margin:0 auto; 
 }
-
 table { 
-  width:720px;  /* ajustado para captura óptima */
+  width:720px;  
   border-collapse: collapse; 
   margin:0 auto; 
   background:#fff;
@@ -81,7 +83,20 @@ footer {
   font-size:0.8rem; 
   color:#555; 
 }
-
+button {
+  display:block;
+  margin:20px auto;
+  padding:10px 18px;
+  background:#007bff;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+button:hover {
+  background:#0056b3;
+}
 @media(max-width:700px){
   table { width:600px; font-size:0.8rem; }
   textarea { height:60px; }
@@ -92,7 +107,7 @@ footer {
 
 <h1>Matriz CAME</h1>
 
-<div class="form">
+<div class="form" id="cameContent">
   <label for="project">Título del proyecto:</label>
   <input type="text" id="project">
 
@@ -101,30 +116,48 @@ footer {
 
   <label for="date">Fecha:</label>
   <input type="date" id="date">
+
+  <div class="table-container">
+    <table id="cameTable">
+      <thead>
+        <tr>
+          <th>Corregir</th>
+          <th>Afrontar</th>
+          <th>Mantener</th>
+          <th>Explotar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><textarea placeholder="Escribe aquí..."></textarea></td>
+          <td><textarea placeholder="Escribe aquí..."></textarea></td>
+          <td><textarea placeholder="Escribe aquí..."></textarea></td>
+          <td><textarea placeholder="Escribe aquí..."></textarea></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<div class="table-container">
-  <table id="cameTable">
-    <thead>
-      <tr>
-        <th title="Corregir debilidades">Corregir</th>
-        <th title="Afrontar amenazas">Afrontar</th>
-        <th title="Mantener fortalezas">Mantener</th>
-        <th title="Explotar oportunidades">Explotar</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><textarea placeholder="Escribe aquí..."></textarea></td>
-        <td><textarea placeholder="Escribe aquí..."></textarea></td>
-        <td><textarea placeholder="Escribe aquí..."></textarea></td>
-        <td><textarea placeholder="Escribe aquí..."></textarea></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<button id="downloadPDF">📄 Descargar PDF</button>
 
 <footer>Creado por Código 404 Ciberseguridad - Todos los derechos reservados © 2025</footer>
+
+<script>
+document.getElementById("downloadPDF").addEventListener("click", () => {
+  const { jsPDF } = window.jspdf;
+  const content = document.getElementById("cameContent");
+
+  html2canvas(content, { scale: 2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("Matriz_CAME.pdf");
+  });
+});
+</script>
 
 </body>
 </html>
